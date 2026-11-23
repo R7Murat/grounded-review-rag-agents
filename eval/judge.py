@@ -14,7 +14,8 @@ from dotenv import load_dotenv
 from litellm import RateLimitError, ServiceUnavailableError, completion
 
 load_dotenv()
-JUDGE_MODEL = os.getenv("JUDGE_MODEL", "gemini/gemini-2.5-flash")
+MAIN_JUDGE = "gemini/gemini-2.5-flash"
+JUDGE_MODEL = os.getenv("JUDGE_MODEL", MAIN_JUDGE)
 INTERVAL_S = float(os.getenv("JUDGE_INTERVAL_S", "7"))  # free tier ~10 requests/min
 JUDGED_TYPES = {"rag", "analyst", "hybrid"}
 
@@ -65,11 +66,19 @@ def judge(question: str, context: str, answer: str) -> dict:
     return {"judge_error": f"{type(last).__name__}: {last}"[:200]}
 
 
+def output_path(raw: Path) -> Path:
+    """Only the main judge writes where report.py reads; others go to second_judge/."""
+    if JUDGE_MODEL == MAIN_JUDGE:
+        return raw.with_suffix(".judge.jsonl")
+    return raw.parent / "second_judge" / f"{raw.stem}.{JUDGE_MODEL.rsplit('/', 1)[-1]}.jsonl"
+
+
 def main(paths: list[str]):
     golden = {q["id"]: q for q in map(json.loads, (Path(__file__).parent / "golden_v2.jsonl")
                                       .read_text(encoding="utf-8").splitlines())}
     for p in map(Path, paths):
-        out = p.with_suffix(".judge.jsonl")
+        out = output_path(p)
+        out.parent.mkdir(exist_ok=True)
         done = {json.loads(ln)["id"] for ln in out.read_text(encoding="utf-8").splitlines()} \
             if out.exists() else set()
         for row in map(json.loads, p.read_text(encoding="utf-8").splitlines()):

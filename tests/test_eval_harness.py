@@ -49,6 +49,14 @@ def test_per_question_averages_runs_before_resampling():
     assert report.per_question(runs, {"sql"}, lambda r: r["sql_ok"]) == {"a": 0.5}
 
 
+def test_second_judge_output_stays_out_of_main_report(monkeypatch):
+    raw = Path("eval_results/raw/v3_cloud_low_r1.jsonl")
+    assert judge.output_path(raw) == raw.with_suffix(".judge.jsonl")
+    monkeypatch.setattr(judge, "JUDGE_MODEL", "groq/qwen/qwen3.8-27b")
+    assert judge.output_path(raw) == (raw.parent / "second_judge"
+                                      / "v3_cloud_low_r1.qwen3.8-27b.jsonl")
+
+
 def _busy():
     return judge.ServiceUnavailableError("busy", llm_provider="gemini", model="m")
 
