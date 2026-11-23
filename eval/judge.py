@@ -11,7 +11,7 @@ import time
 from pathlib import Path
 
 from dotenv import load_dotenv
-from litellm import RateLimitError, completion
+from litellm import RateLimitError, ServiceUnavailableError, completion
 
 load_dotenv()
 JUDGE_MODEL = os.getenv("JUDGE_MODEL", "gemini/gemini-2.5-flash")
@@ -55,10 +55,13 @@ def judge(question: str, context: str, answer: str) -> dict:
                 sys.exit(f"judge daily quota reached ({JUDGE_MODEL}); rerun later to resume")
             last = e
             time.sleep(60)
+        except ServiceUnavailableError as e:  # transient 503
+            last = e
+            time.sleep(60 * (attempt + 1))
         except (ValueError, KeyError, TypeError, json.JSONDecodeError) as e:
             last = e  # malformed output: retry once more, then record as missing
-    if isinstance(last, RateLimitError):  # not the answer's fault: leave it for the next run
-        sys.exit(f"judge rate limited ({JUDGE_MODEL}); rerun later to resume")
+    if isinstance(last, (RateLimitError, ServiceUnavailableError)):  # not the answer's fault
+        sys.exit(f"judge unavailable ({JUDGE_MODEL}, {type(last).__name__}); rerun later to resume")
     return {"judge_error": f"{type(last).__name__}: {last}"[:200]}
 
 

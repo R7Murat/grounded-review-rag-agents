@@ -1,6 +1,7 @@
 """Deterministic parts of the eval harness: row matching, injection checks, judge parsing, CI."""
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -46,3 +47,31 @@ def test_per_question_averages_runs_before_resampling():
     runs = [[{"id": "a", "type": "sql", "sql_ok": True}],
             [{"id": "a", "type": "sql", "sql_ok": False}]]
     assert report.per_question(runs, {"sql"}, lambda r: r["sql_ok"]) == {"a": 0.5}
+
+
+def _busy():
+    return judge.ServiceUnavailableError("busy", llm_provider="gemini", model="m")
+
+
+def test_judge_retries_503_then_scores(monkeypatch):
+    ok = SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(
+        content='{"claims_total": 2, "claims_supported": 2, "relevance": 1}'))])
+    replies = iter([_busy(), ok])
+
+    def fake(**_):
+        r = next(replies)
+        if isinstance(r, Exception):
+            raise r
+        return r
+    monkeypatch.setattr(judge, "completion", fake)
+    monkeypatch.setattr(judge.time, "sleep", lambda _: None)
+    assert judge.judge("q", "c", "a")["faithfulness"] == 1.0
+
+
+def test_judge_persistent_503_exits_without_a_row(monkeypatch):
+    def fake(**_):
+        raise _busy()
+    monkeypatch.setattr(judge, "completion", fake)
+    monkeypatch.setattr(judge.time, "sleep", lambda _: None)
+    with pytest.raises(SystemExit):
+        judge.judge("q", "c", "a")
