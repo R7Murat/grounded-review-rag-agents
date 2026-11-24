@@ -57,6 +57,15 @@ def test_second_judge_output_stays_out_of_main_report(monkeypatch):
                                       / "v3_cloud_low_r1.qwen3.8-27b.jsonl")
 
 
+def test_recorded_commits_resolve_to_current_history():
+    import subprocess
+    for c in ("271cfe7", "1639893", "7e5b88d"):
+        new = report.resolve_commit(c)
+        assert not new.startswith(c)
+        assert subprocess.run(["git", "merge-base", "--is-ancestor", new, "HEAD"],
+                              cwd=report.ROOT).returncode == 0
+
+
 def _busy():
     return judge.ServiceUnavailableError("busy", llm_provider="gemini", model="m")
 

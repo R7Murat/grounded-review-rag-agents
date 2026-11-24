@@ -57,8 +57,15 @@ def load_runs(tag: str) -> list[list[dict]]:
 GENERATION_PATHS = ["src", "eval/run_eval.py", "eval/harness.py", "eval/golden_v2.jsonl"]
 
 
+def resolve_commit(c: str) -> str:
+    """Map a hash recorded before the 2026-11-24 history rewrite to its rewritten commit."""
+    path = ROOT / "eval_results" / "commit_map.json"
+    mapping = json.loads(path.read_text(encoding="utf-8"))["map"] if path.exists() else {}
+    return next((new for old, new in mapping.items() if old.startswith(c)), c)
+
+
 def same_generation_code(commits: set[str]) -> bool:
-    first, *rest = sorted(commits)
+    first, *rest = sorted(map(resolve_commit, commits))
     return all(subprocess.run(["git", "diff", "--quiet", first, c, "--", *GENERATION_PATHS],
                               cwd=ROOT).returncode == 0 for c in rest)
 

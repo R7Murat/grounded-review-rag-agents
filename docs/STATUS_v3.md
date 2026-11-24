@@ -64,6 +64,7 @@ Bu dosya v3 çalışmasının kararlarını, kanıtlarını ve açık maddelerin
 | 2026-11-20 | Maliyet ayrıca `gen_ai.usage.cost` olarak yazılıyor | Langfuse maliyeti bu alandan okuyor, fiyat tablosunda model yok. Değer yine liste fiyatı; ödenen tutar 0. |
 | 2026-11-20 | Langfuse v4 sorgusu `/api/public/v2/observations` | v4'te `/api/public/traces` 404 dönüyor. |
 | 2026-11-20 | Heyet ve direktör uzlaşırsa adım onay beklemeden uygulanır | Murat'ın talimatı; uzlaşma yoksa sorulur. |
+| 2026-11-24 | GitHub'a push ve deploy'u yalnızca Murat yapar; commit ve PR'larda yardımcı araç imzası yok | Murat'ın talimatı: public repoda contributor olarak yalnızca o görünür. Geçmiş yeniden yazıldı (yalnızca mesajlar, kod ağaçları aynı); eski commit kimlikleri `eval_results/commit_map.json`'da, `report.py` eşlemeyi kullanır. Metinde geçen eski kimlikler (ör. `0fec73f`, `271cfe7`) bu dosyadan çözülür. |
 
 ## Bulgular (Faz 0 sırasında)
 
