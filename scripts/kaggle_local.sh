@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Local profile on a Kaggle GPU: Ollama + gpt-oss:20b, traces written to a file.
 # Run in a Kaggle notebook (GPU T4 x2, Internet on) from the cloned repo root:
-#   !git clone --depth 1 --branch v3 https://github.com/R7Murat/ecommerce-intel-copilot.git
-#   %cd ecommerce-intel-copilot
+#   !git clone --depth 1 --branch v3 https://github.com/R7Murat/grounded-review-rag-agents.git
+#   %cd grounded-review-rag-agents
 #   !bash scripts/kaggle_local.sh [low|medium|high|default] [smoke|eval]
 # eval: three golden-set runs (generation only; judge.py runs later on the laptop).
 # Needs a Kaggle dataset with products.db and the chroma/ folder attached as input.

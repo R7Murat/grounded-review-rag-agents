@@ -65,6 +65,7 @@ Bu dosya v3 çalışmasının kararlarını, kanıtlarını ve açık maddelerin
 | 2026-11-20 | Langfuse v4 sorgusu `/api/public/v2/observations` | v4'te `/api/public/traces` 404 dönüyor. |
 | 2026-11-20 | Heyet ve direktör uzlaşırsa adım onay beklemeden uygulanır | Murat'ın talimatı; uzlaşma yoksa sorulur. |
 | 2026-11-24 | GitHub'a push ve deploy'u yalnızca Murat yapar; commit ve PR'larda yardımcı araç imzası yok | Murat'ın talimatı: public repoda contributor olarak yalnızca o görünür. Geçmiş yeniden yazıldı (yalnızca mesajlar, kod ağaçları aynı); eski commit kimlikleri `eval_results/commit_map.json`'da, `report.py` eşlemeyi kullanır. Metinde geçen eski kimlikler (ör. `0fec73f`, `271cfe7`) bu dosyadan çözülür. |
+| 2026-11-25 | Proje adı `grounded-review-rag-agents` (README başlığı: Grounded Review RAG Agents) | Murat'ın kararı. GitHub reposu v3 içeriği tamamlanınca silinip bu adla yeniden açılacak; o zamana kadar push yok. Python paketi (`src/copilot`), yerel klasör ve eval kayıtları değişmedi. Arayüz başlıkları Faz 4'te demo HF Space'e taşınırken değişecek (`src/` değişikliği üretim kodu sayılır). |
 
 ## Bulgular (Faz 0 sırasında)
 

@@ -1,4 +1,4 @@
-# System Card — E-Commerce Product Intelligence Copilot
+# System Card — Grounded Review RAG Agents
 
 ## What the system does
 Answers natural-language questions about Amazon appliance products and their reviews:
