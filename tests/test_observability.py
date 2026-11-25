@@ -176,7 +176,7 @@ def test_analytics_calls_are_traced():
 
     @traced_node("invoke_agent", "hybrid")
     def agent():
-        return analytics.top_movers(conn, n=1), analytics.rating_trend(conn, "A1")
+        return analytics.top_movers(conn, n=1, min_reviews=1), analytics.rating_trend(conn, "A1")
 
     assert agent()[0] == [("A1", 5.0, 3.0, -2.0)]
     spans = by_name()

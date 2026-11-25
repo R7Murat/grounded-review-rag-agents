@@ -72,7 +72,7 @@ def judge_context(result: dict) -> str:
     """The evidence the answer was built from, as the judge will see it."""
     parts = []
     if a := result.get("analyst_result"):
-        parts.append(f"Top movers (asin, first-year avg, last-year avg, change): {a.get('movers')}")
+        parts.append(f"{graph.MOVERS_LABEL}: {a.get('movers')}")
         if "volume" in a:
             parts.append(f"Review volume by year: {a['volume']}")
         if "trend" in a:

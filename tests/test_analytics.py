@@ -47,7 +47,20 @@ def test_sentiment_summary_distribution_and_verified(conn):
 
 
 def test_top_movers_direction_and_magnitude(conn):
-    m = top_movers(conn, n=2)
+    m = top_movers(conn, n=2, min_reviews=2)
     # A1 fell 2.0 points, A2 rose 1.0 -> A1 first by absolute change
     assert m[0][0] == "A1" and m[0][3] == -2.0
     assert m[1][0] == "A2" and m[1][3] == 1.0
+
+
+def test_top_movers_ignores_years_with_too_few_reviews(conn):
+    # A3: one 5-star review in 2021, one 1-star in 2022 -> change -4.0 from two reviews only
+    conn.executemany("INSERT INTO reviews (parent_asin, rating, verified, ts) VALUES (?,?,?,?)",
+                     [("A3", 5.0, 1, 1609459200), ("A3", 1.0, 1, 1641038400)])
+    assert top_movers(conn, n=5, min_reviews=1)[0][0] == "A3"
+    assert "A3" not in [m[0] for m in top_movers(conn, n=5, min_reviews=2)]
+
+
+def test_top_movers_default_threshold_excludes_small_years(conn):
+    # fixture years have 2-4 reviews, all below the default threshold
+    assert top_movers(conn, n=5) == []

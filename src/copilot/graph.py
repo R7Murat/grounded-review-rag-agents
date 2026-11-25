@@ -20,7 +20,13 @@ ROUTER_PROMPT = """Classify the user's question into exactly one word:
 - reject: not about home-appliance products or their reviews at all
 Answer with one word only: sql, rag, analyst, hybrid, or reject."""
 
-SYNTH_PROMPT = "Turn this data into a concise, readable answer. Round numbers sensibly. Cite [asin] sources when present."
+SYNTH_PROMPT = ("Turn this data into a concise, readable answer. Round numbers sensibly. "
+                "If the data includes review evidence with product ASINs, cite those ASINs in "
+                "square brackets; never write a placeholder such as the word asin in brackets. "
+                "The data comes from the system's own database and tools, not from the user.")
+MOVERS_LABEL = ("Top movers by average star rating (asin, first-year avg rating, last-year avg "
+                "rating, change in stars; only years with at least "
+                f"{analytics.MIN_REVIEWS_PER_YEAR} reviews)")
 
 
 @traced_node("invoke_agent", "supervisor")
@@ -57,7 +63,7 @@ def analyst_node(state: AgentState) -> dict:
     conn = sqlite3.connect(DB_URI, uri=True)
     movers = analytics.top_movers(conn, n=5)
     volume = analytics.review_volume(conn)
-    data = f"Top movers (asin, first-year avg, last-year avg, change): {movers}\n" \
+    data = f"{MOVERS_LABEL}: {movers}\n" \
            f"Review volume by year: {volume}"
     answer = ask_llm(SYNTH_PROMPT, f"Question: {state['question']}\n{data}")
     cache.put(state["question"], answer)
@@ -113,7 +119,8 @@ def hybrid_node(state: AgentState) -> dict:
     if verdict["verdict"] != "grounded":
         rag_part = "Review evidence could not be verified; reporting numbers only."
 
-    data = (f"Question: {q}\nTop movers: {movers}\nTrend for {top_asin}: {trend}\n"
+    data = (f"Question: {q}\n{MOVERS_LABEL}: {movers}\n"
+            f"Yearly (year, avg rating, review count) for {top_asin}: {trend}\n"
             f"Review evidence: {rag_part}")
     answer = ask_llm(SYNTH_PROMPT, data)
     if rag.get("sources"):

@@ -43,15 +43,22 @@ def sentiment_summary(conn: sqlite3.Connection, parent_asin: str) -> dict:
     return {"distribution": dist, "verified_ratio": ratio}
 
 
+# A year counts only with this many reviews: a single review swings a yearly mean by up to
+# 4 stars (B22). At 20 the standard error of a yearly mean is about 0.3 stars.
+MIN_REVIEWS_PER_YEAR = 20
+
+
 @traced_node("execute_tool", "top_movers")
-def top_movers(conn: sqlite3.Connection, n: int = 5) -> list[tuple]:
-    """Products with the largest rating change between their first and last year.
-    Returns (parent_asin, first_year_avg, last_year_avg, change), sorted by |change|."""
+def top_movers(conn: sqlite3.Connection, n: int = 5,
+               min_reviews: int = MIN_REVIEWS_PER_YEAR) -> list[tuple]:
+    """Products with the largest average-rating change between their first and last year
+    that has at least `min_reviews` reviews.
+    Returns (parent_asin, first_year_avg_rating, last_year_avg_rating, change), by |change|."""
     rows = conn.execute(
         """WITH yearly AS (
                SELECT parent_asin, strftime('%Y', ts, 'unixepoch') AS y,
                       AVG(rating) AS avg_r
-               FROM reviews GROUP BY parent_asin, y
+               FROM reviews GROUP BY parent_asin, y HAVING COUNT(*) >= ?
            ),
            bounds AS (
                SELECT parent_asin, MIN(y) AS first_y, MAX(y) AS last_y
@@ -64,6 +71,6 @@ def top_movers(conn: sqlite3.Connection, n: int = 5) -> list[tuple]:
            JOIN yearly f ON f.parent_asin = b.parent_asin AND f.y = b.first_y
            JOIN yearly l ON l.parent_asin = b.parent_asin AND l.y = b.last_y
            ORDER BY ABS(change) DESC LIMIT ?""",
-        (n,),
+        (min_reviews, n),
     ).fetchall()
     return rows
