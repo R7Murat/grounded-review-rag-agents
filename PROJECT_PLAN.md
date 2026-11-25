@@ -1,4 +1,4 @@
-# Project Plan — E-Commerce Product Intelligence Copilot
+# Project Plan — Grounded Review RAG Agents
 
 A multi-agent Retrieval-Augmented Generation (RAG) system that answers natural-language
 questions over Amazon product and review data by orchestrating specialized agents for
@@ -13,11 +13,11 @@ Any change to scope or architecture is made deliberately and recorded here with 
 
 | Field | Value |
 |-------|-------|
-| **Project** | E-Commerce Product Intelligence Copilot |
+| **Project** | Grounded Review RAG Agents |
 | **Goal** | An end-to-end, deployed multi-agent RAG system demonstrating agent orchestration, retrieval, and evaluation |
 | **Core skills** | Multi-agent orchestration (LangGraph Supervisor), RAG, text-to-SQL, agent-level evaluation (trajectory), Infrastructure-as-Code, CI/CD |
 | **Data** | Amazon Reviews 2023 (McAuley Lab, Hugging Face) — `Appliances` category |
-| **Repository** | github.com/R7Murat/ecommerce-intel-copilot |
+| **Repository** | github.com/R7Murat/grounded-review-rag-agents |
 | **Deployment** | Docker image to (a) Hugging Face Spaces — persistent live demo, (b) AWS via Terraform — provisioned, validated, and torn down |
 | **Language** | Code and repository in English |
 
@@ -130,7 +130,7 @@ Streamlit · Docker · Terraform (AWS, local state) · GitHub Actions.
 
 ## 5. Repository Layout
 ```
-ecommerce-intel-copilot/
+grounded-review-rag-agents/
 ├── PROJECT_PLAN.md · STATUS.md · README.md · .gitignore
 ├── docs/            DECISIONS.md, data_quality_report.md, architecture.md, aws-deployment.md
 ├── notebooks/       01_data_pipeline.ipynb

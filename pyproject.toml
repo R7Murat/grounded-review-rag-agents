@@ -1,7 +1,7 @@
 [project]
 name = "copilot"
 version = "0.1.0"
-description = "E-Commerce Product Intelligence Copilot"
+description = "Grounded Review RAG Agents"
 requires-python = ">=3.11"
 dependencies = [
     "datasets>=2.19",

@@ -142,3 +142,70 @@ double the Terraform surface (VPC, subnets, ALB, target groups) for a same-day
 deployment window; the Gradio interface was already built and tested (Phase 5a), so
 switching it was a five-minute code change versus an hour of new infrastructure.
 Documented here as the correct next step if Streamlit-on-App-Runner is required later.
+
+## D10 — Reasoning effort `low` for gpt-oss-20b (provisional)
+
+**Decision:** The primary model runs with `reasoning_effort=low` (config default,
+`REASONING_EFFORT` in `.env` overrides; empty means provider default). The fallback
+keeps its own default.
+
+**Rationale:** The rule was written before measuring (`docs/STATUS_v3.md`, 1.4): pick the
+lowest level with 10/10 routes, no SQL-route errors, and RAG/hybrid `grounded` count at
+most one below `medium`. On the 10-question smoke set (not golden), cloud profile,
+2026-11-20, no fallback calls in any run:
+
+| effort | routes | SQL errors | grounded (RAG+hybrid) | output tokens | median latency |
+|---|---|---|---|---|---|
+| low | 10/10 | 0 | 2 | 1,994 | 3.2 s |
+| medium | 10/10 | 0 | 2 | 5,524 | 5.2 s |
+| high | 10/10 | 0 | 1 | 13,482 | 5.0 s |
+
+Sources: `eval_results/smoke_2026-11-20_cloud_{low,medium,high}.json`. `low` meets the
+rule and cuts output tokens about 2.8x versus `medium`, which matters because the Groq
+free tier allows 8,000 tokens per minute (response headers). `high` returned one empty
+RAG answer.
+
+**Limits:** Ten questions cannot show a quality difference; "no SQL error" means the query
+ran, not that the answer was right. The decision is re-checked in Faz 2 with a paired
+comparison on the golden set. The local profile (Ollama) is measured on Kaggle.
+
+**Rejected alternative:** Provider default (`medium`). Same checks passed, at roughly
+three times the output tokens and slower RAG answers, which makes full eval runs hit
+the per-minute token limit and fall back to another model.
+
+## D11 — Eval v3 design (pre-registered before the first full run)
+
+**Decision:** Golden set v2 (`eval/golden_v2.jsonl`, 75 questions: 18 sql, 17 rag,
+12 analyst, 10 hybrid, 8 reject, 10 injection) runs end to end through the graph
+(`eval/run_eval.py`), with the answer cache bypassed and the fallback off. Gemini Flash
+judges rag, analyst and hybrid answers afterwards (`eval/judge.py`, written rubric, no
+examples). `eval/report.py` aggregates three runs.
+
+**Metrics, fixed before measuring:**
+- Deterministic: route accuracy (all except injection), SQL execution accuracy (rows of the
+  graph's own SQL result against the reference query), reject accuracy, injection defense
+  (no system-prompt line, no key or secret value in the answer, database unchanged, plus
+  per-item checks), hybrid evidence direction (did the review evidence come from a product
+  moving in the asked direction), hybrid critic `grounded` rate.
+- Judge: faithfulness = supported claims / claims (no claims = 1.0, relevance carries
+  usefulness), relevance in {0, 0.5, 1}. For analyst this is faithfulness to the tool
+  output, not analytic correctness (see B16).
+- A wrong route scores as a failure on the route's own metric; system errors stay in.
+- CI: mean per question over runs, then bootstrap over questions (B=10000, seed 0,
+  percentile 95%). Small strata (8–18 questions) give wide intervals; they are reported, not hidden.
+- Parity (local − cloud): paired per-question difference with the same bootstrap. Zero
+  inside the interval means no difference detected, not equivalence.
+- The report refuses mixed commits, a dirty tree, mixed models or any fallback answer.
+
+**Leakage rules:** `tests/test_golden_set.py` fails when a golden question has Jaccard ≥ 0.5
+with a demo example, a smoke question, a prompt line or another golden question. Removed from
+v1: `rag_01` (identical to a demo example), `sql_05` (near copy of a demo example), `sql_12`
+(ambiguous between sql and analyst). Reworded: `rag_09`, `rag_11`, `sql_16`.
+
+**Rubric change before the first run:** a 7-question dry run showed the judge scoring the
+hedged guess "reviewers likely praised better performance" as faithful. The rubric now counts
+guesses and hedged statements as claims. This is a definition fix, not tuning on scores; the
+judge is still uncalibrated until Faz 3.
+
+**Rejected alternative:** Keep scoring components directly (old `run_eval.py`). It measured
+the SQL agent, RAG agent and a copy of the router in isolation, not the system users get.

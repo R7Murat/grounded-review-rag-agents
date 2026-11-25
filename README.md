@@ -1,15 +1,13 @@
 
 
 
-# 🛒 E-Commerce Product Intelligence Copilot
+# Grounded Review RAG Agents
 
 **Five specialized agents. One supervisor. Zero unverified claims.**
 
 ![Architecture](docs/img/architecture-overview.png)
-![Deployment](docs/img/deployment_architecture.png)
 [![Live Demo](https://img.shields.io/badge/Live_Demo-Streamlit_Cloud-FF4B4B?logo=streamlit)](https://ecommerce-intel-copilot-u3hzffazrtbv4ayzfqhzet.streamlit.app/)
 [![AWS Verified](https://img.shields.io/badge/AWS-Deployed_%26_Verified-FF9900?logo=amazonwebservices)](docs/aws-deployment.md)
-[![Tests](https://img.shields.io/badge/tests-19_passing-brightgreen)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 A multi-agent RAG system that answers natural-language questions over 441,857 Amazon
@@ -41,13 +39,17 @@ user ──> SUPERVISOR ──> { SQL ANALYST │ KNOWLEDGE (RAG) │ MARKET ANA
 Measured on a 30-question held-out set (never leaked into prompts or the index);
 the harness bypasses the answer cache.
 
-| Metric | Score | Threshold |
-|---|---|---|
-| SQL execution accuracy | 92% (11/12) | ≥ 80% |
-| Trajectory accuracy (routing) | 100% (30/30) | ≥ 85% |
-| Faithfulness (LLM-as-judge) | 1.00 | ≥ 0.80 |
-| Answer relevance | 0.91 | ≥ 0.75 |
-| Out-of-scope rejection | 6/6 | 100% |
+Measured 2026-07-11 on Groq Llama 3.3 70B (since retired); faithfulness and relevance
+were judged by the same model. Re-measurement on gpt-oss-20b with a cross-family judge
+is planned. Source: [`eval_results/baseline.json`](eval_results/baseline.json).
+
+| Metric | n | Score | Threshold |
+|---|---|---|---|
+| SQL execution accuracy | 12 | 92% (11/12) | ≥ 80% |
+| Trajectory accuracy (routing; 3-class router: sql/rag/reject, component-level) | 30 | 100% (30/30) | ≥ 85% |
+| Faithfulness (LLM-as-judge) | 12 | 1.00 | ≥ 0.80 |
+| Answer relevance (LLM-as-judge) | 12 | 0.87 | ≥ 0.75 |
+| Out-of-scope rejection | 6 | 6/6 | 100% |
 
 The single SQL failure is an analyzed false negative (the model returned `parent_asin`
 instead of the product title — same product, same count); the strict matcher was kept
@@ -70,14 +72,14 @@ for Retrieval and Recommendation* (arXiv:2403.03952).
 
 ## Stack
 
-Python 3.11 · LangGraph · litellm (Groq Llama 3.3 70B primary, Gemini 2.5 Flash
+Python 3.11 · LangGraph · litellm (Groq gpt-oss-20b primary, Gemini 2.5 Flash
 fallback) · Chroma + sentence-transformers (local embeddings) · SQLite (read-only) ·
-custom LLM-as-judge eval harness · Streamlit · pytest (19 tests).
+custom LLM-as-judge eval harness · Streamlit · pytest.
 
 ## Run locally
 
 ```bash
-git clone https://github.com/R7Murat/ecommerce-intel-copilot && cd ecommerce-intel-copilot
+git clone https://github.com/R7Murat/grounded-review-rag-agents && cd grounded-review-rag-agents
 python -m venv .venv && source .venv/Scripts/activate   # Windows Git Bash
 pip install -e ".[dev]"
 # .env with GROQ_API_KEY and GEMINI_API_KEY
@@ -93,4 +95,4 @@ Tests: `python -m pytest -m "not llm"` (fast) · `python -m pytest` (includes li
 - [docs/DECISIONS.md](docs/DECISIONS.md) — every significant decision with rationale and rejected alternatives
 - [SYSTEM_CARD.md](SYSTEM_CARD.md) — capabilities, limitations, and development notes
 - [notebooks/01_data_pipeline.ipynb](notebooks/01_data_pipeline.ipynb) — EDA, schema design, and a reproduced type-integrity bug (pandas nullable Int64 → SQLite BLOB)
-- [docs/aws-deployment.md](docs/aws-deployment.md) — AWS App Runner deployment evidence (provision-validate-destroy cycle)
+- [docs/aws-deployment.md](docs/aws-deployment.md) — AWS App Runner deployment evidence (provision-validate-destroy cycle); diagram: [docs/img/deployment_architecture.png](docs/img/deployment_architecture.png)
