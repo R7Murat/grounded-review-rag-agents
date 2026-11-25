@@ -6,7 +6,7 @@
 **Five specialized agents. One supervisor. Zero unverified claims.**
 
 ![Architecture](docs/img/architecture-overview.png)
-[![Live Demo](https://img.shields.io/badge/Live_Demo-Streamlit_Cloud-FF4B4B?logo=streamlit)](https://ecommerce-intel-copilot-u3hzffazrtbv4ayzfqhzet.streamlit.app/)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Streamlit_Cloud-FF4B4B?logo=streamlit)](https://grounded-review-rag-agents.streamlit.app/)
 [![AWS Verified](https://img.shields.io/badge/AWS-Deployed_%26_Verified-FF9900?logo=amazonwebservices)](docs/aws-deployment.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -14,7 +14,7 @@ A multi-agent RAG system that answers natural-language questions over 441,857 Am
 appliance reviews — structured SQL, semantic retrieval, deterministic analytics, and a
 groundedness critic, orchestrated behind a single supervisor.
 
-**Live demo:** https://ecommerce-intel-copilot-u3hzffazrtbv4ayzfqhzet.streamlit.app/
+**Live demo:** https://grounded-review-rag-agents.streamlit.app/
 
 ![Agent path on AWS](docs/img/03-app-running-hybrid-query.png)
 

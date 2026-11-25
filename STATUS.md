@@ -16,7 +16,7 @@ Active phase: — (all planned phases complete) | Completed: Phase 0–6, 5b
 
 ## Acceptance Evidence — Phase 5a (Deployment)
 - Live demo on Streamlit Community Cloud:
-  https://ecommerce-intel-copilot-u3hzffazrtbv4ayzfqhzet.streamlit.app/
+  https://grounded-review-rag-agents.streamlit.app/
 - Data served from a companion HF dataset repo (R7Murat/ecommerce-intel-data, ~2 GB),
   downloaded on first boot.
 - Hybrid chain verified live in the UI with sources and latency shown.
