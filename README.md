@@ -72,9 +72,19 @@ for Retrieval and Recommendation* (arXiv:2403.03952).
 
 ## Stack
 
-Python 3.11 · LangGraph · litellm (Groq gpt-oss-20b primary, Gemini 2.5 Flash
-fallback) · Chroma + sentence-transformers (local embeddings) · SQLite (read-only) ·
+Python 3.11 · LangGraph · litellm · Chroma + sentence-transformers (local embeddings) ·
+SQLite (read-only) · OpenTelemetry traces to self-hosted Langfuse (Docker Compose) ·
 custom LLM-as-judge eval harness · Streamlit · pytest.
+
+One model, two profiles, selected by `COPILOT_PROFILE`:
+
+| Profile | Model | Fallback | Use |
+|---|---|---|---|
+| `cloud` (default) | gpt-oss-20b on Groq | Gemini 2.5 Flash | development, demo |
+| `local` | gpt-oss-20b on Ollama | none | data never leaves the machine |
+
+The `local` profile fails closed: the app refuses to start unless `OLLAMA_NO_CLOUD=1`,
+the endpoint is a loopback address and the model is a local Ollama model.
 
 ## Run locally
 
@@ -82,9 +92,23 @@ custom LLM-as-judge eval harness · Streamlit · pytest.
 git clone https://github.com/R7Murat/grounded-review-rag-agents && cd grounded-review-rag-agents
 python -m venv .venv && source .venv/Scripts/activate   # Windows Git Bash
 pip install -e ".[dev]"
-# .env with GROQ_API_KEY and GEMINI_API_KEY
+# .env with GROQ_API_KEY and GEMINI_API_KEY (cloud profile)
 streamlit run src/copilot/ui/app.py
 ```
+
+Local profile (needs [Ollama](https://ollama.com) with `gpt-oss:20b` pulled; about 16 GB of memory):
+
+```bash
+COPILOT_PROFILE=local OLLAMA_NO_CLOUD=1 streamlit run src/copilot/ui/app.py
+```
+
+Tracing (optional): start Langfuse and the app exports OpenTelemetry spans to it.
+
+```bash
+python infra/langfuse/init_env.py      # generates secrets into .env files; prints names only
+cd infra/langfuse && docker compose up -d   # UI on http://localhost:3000
+```
+Without `LANGFUSE_*` variables tracing is a no-op.
 On first launch the app downloads the prepared dataset (~2 GB) from the companion
 dataset repo [R7Murat/ecommerce-intel-data](https://huggingface.co/datasets/R7Murat/ecommerce-intel-data).
 
